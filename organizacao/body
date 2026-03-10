@@ -1,0 +1,166 @@
+#include <math.h>
+
+#define velocidade 100
+#define bomba A5
+#define SERVO_PIN A4
+
+//motor lado direito
+#define enA 10
+#define in1 9
+#define in2 8
+//motor lado esquerdo
+#define enB 5
+#define in3 7
+#define in4 6
+
+//sensores
+#define sensor_F A1
+#define sensor_E A2
+#define sensor_D A0
+
+int result_F, result_E, result_D;
+
+// ========================= SETUP =========================
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(enA, OUTPUT);
+  pinMode(enB, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+
+  analogWrite(enA, velocidade);
+  analogWrite(enB, velocidade);
+
+  parar();
+
+  pinMode(sensor_F, INPUT);
+  pinMode(sensor_E, INPUT);
+  pinMode(sensor_D, INPUT);
+
+  pinMode(SERVO_PIN, OUTPUT);
+  pinMode(bomba, OUTPUT);
+
+  // posição inicial do servo
+  servoPulse(SERVO_PIN, 90);
+}
+
+// ========================= LOOP =========================
+void loop() {
+
+  // --- leitura dos sensores com média simples ---
+  result_F = analogRead(sensor_F);
+  result_E = analogRead(sensor_E);
+  result_D = analogRead(sensor_D);
+
+  Serial.print(result_D); Serial.print("\t");
+  Serial.print(result_F); Serial.print("\t");
+  Serial.println(result_E);
+
+  // ========================== PRIORIDADES ===============================
+
+  // 1️⃣ FOGO MUITO PERTO — APAGAR AGORA
+  if (result_F < 220 || result_E < 200 || result_D < 200) {
+    apagarFogo();
+    return;
+  }
+
+  // 2️⃣ FOGO À FRENTE LONGE — IR EM DIREÇÃO
+  if (result_F >= 220 && result_F <= 700) {
+    digitalWrite(bomba, LOW);
+    mov_fnt();
+    return;
+  }
+
+  // 3️⃣ FOGO À ESQUERDA LONGE — AJUSTAR ROTA CURTO
+  if (result_E >= 220 && result_E <= 700) {
+    digitalWrite(bomba, LOW);
+    smallLeft();
+    return;
+  }
+
+  // 4️⃣ FOGO À DIREITA LONGE — AJUSTAR ROTA CURTO
+  if (result_D >= 220 && result_D <= 700) {
+    digitalWrite(bomba, LOW);
+    smallRight();
+    return;
+  }
+
+  // 5️⃣ NADA — PARAR
+  parar();
+}
+
+// ======================= FUNÇÃO DE APAGAR FOGO =========================
+void apagarFogo() {
+  parar();
+  digitalWrite(bomba, HIGH);
+
+  // Varredura eficiente que cobre toda a área
+  for (int pos = 90; pos <= 140; pos += 3) servoPulse(SERVO_PIN, pos);
+  for (int pos = 140; pos >= 40; pos -= 3) servoPulse(SERVO_PIN, pos);
+  for (int pos = 40; pos <= 95; pos += 3) servoPulse(SERVO_PIN, pos);
+
+  digitalWrite(bomba, LOW);
+}
+
+// ======================= MOVIMENTOS CURTOS ==============================
+void smallLeft() {
+  backword();
+  delay(80);
+  mov_esq();
+  delay(120);
+  parar();
+}
+
+void smallRight() {
+  backword();
+  delay(80);
+  mov_dir();
+  delay(120);
+  parar();
+}
+
+// ======================= SERVO PWM =====================================
+void servoPulse(int pin, int angle) {
+  int pwm = (angle * 11) + 500;
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(pwm);
+  digitalWrite(pin, LOW);
+  delay(20);
+}
+
+// ======================= MOVIMENTOS ====================================
+void mov_fnt() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+}
+void mov_tras() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
+void mov_dir() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+}
+void mov_esq() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
+void backword() { mov_tras(); }
+
+void parar() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+}
