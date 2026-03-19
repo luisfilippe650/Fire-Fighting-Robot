@@ -189,7 +189,7 @@ This project was created to practice:
 
 # Author
 
-Luis Filippe Reis Nogueira
-Analyce Correa Garcia Angelo
-Pedro Fonseca
+Luis Filippe Reis Nogueira |
+Analyce Correa Garcia Angelo |
+Pedro Fonseca |
 Pedro Martinho
