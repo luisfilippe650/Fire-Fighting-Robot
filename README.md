@@ -8,7 +8,7 @@ This project was created for **learning purposes** to practice embedded programm
 
 ---
 
-# Technologies Used
+# Technologies Useds
 
 * Arduino / C++
 * Flame Sensors
